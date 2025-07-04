@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algorithm Visualizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    #controls {
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    #bars {
+      display: flex;
+      align-items: flex-end;
+      height: 300px;
+      width: 100%;
+      max-width: 800px;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      gap: 2px;
+    }
+    .bar {
+      background-color: #3b82f6;
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background-color: #10b981;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    input[type="range"] {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Algorithm Visualizer</h1>
+  <div id="controls">
+    <div>
+      <label for="arraySize">Array Size: </label>
+      <input type="range" id="arraySize" min="5" max="100" value="10">
+      <span id="arraySizeValue">10</span>
+    </div>
+    <div>
+      <button id="generate">Generate New Array</button>
+      <button id="bubbleSort">Bubble Sort</button>
+      <button id="selectionSort">Selection Sort</button>
+      <button id="insertionSort">Insertion Sort</button>
+    </div>
+  </div>
+  <div id="bars"></div>
+
+  <script>
+    let array = [];
+    let sorting = false;
+    let arraySize = 10;
+    let sortSpeed = 300;
+
+    const barsContainer = document.getElementById("bars");
+    const arraySizeSlider = document.getElementById("arraySize");
+    const arraySizeValue = document.getElementById("arraySizeValue");
+
+    const getSortDelay = (size) => Math.max(10, 1000 / size);
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function generateRandomArray(size = arraySize) {
+      array = Array.from({ length: size }, () => Math.floor(Math.random() * 100) + 1);
+      renderBars();
+    }
+
+    function renderBars() {
+      barsContainer.innerHTML = "";
+      array.forEach(value => {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = value * 2 + "px";
+        bar.style.width = `${100 / array.length}%`;
+        barsContainer.appendChild(bar);
+      });
+    }
+
+    async function bubbleSort() {
+      sorting = true;
+      for (let i = 0; i < array.length - 1; i++) {
+        for (let j = 0; j < array.length - i - 1; j++) {
+          if (array[j] > array[j + 1]) {
+            [array[j], array[j + 1]] = [array[j + 1], array[j]];
+            renderBars();
+            await sleep(sortSpeed);
+          }
+        }
+      }
+      sorting = false;
+    }
+
+    async function selectionSort() {
+      sorting = true;
+      for (let i = 0; i < array.length - 1; i++) {
+        let minIndex = i;
+        for (let j = i + 1; j < array.length; j++) {
+          if (array[j] < array[minIndex]) {
+            minIndex = j;
+          }
+        }
+        if (minIndex !== i) {
+          [array[i], array[minIndex]] = [array[minIndex], array[i]];
+          renderBars();
+          await sleep(sortSpeed);
+        }
+      }
+      sorting = false;
+    }
+
+    async function insertionSort() {
+      sorting = true;
+      for (let i = 1; i < array.length; i++) {
+        let key = array[i];
+        let j = i - 1;
+        while (j >= 0 && array[j] > key) {
+          array[j + 1] = array[j];
+          j--;
+          renderBars();
+          await sleep(sortSpeed);
+        }
+        array[j + 1] = key;
+        renderBars();
+        await sleep(sortSpeed);
+      }
+      sorting = false;
+    }
+
+    document.getElementById("generate").addEventListener("click", () => generateRandomArray(arraySize));
+    document.getElementById("bubbleSort").addEventListener("click", () => {
+      if (!sorting) bubbleSort();
+    });
+    document.getElementById("selectionSort").addEventListener("click", () => {
+      if (!sorting) selectionSort();
+    });
+    document.getElementById("insertionSort").addEventListener("click", () => {
+      if (!sorting) insertionSort();
+    });
+
+    arraySizeSlider.addEventListener("input", e => {
+      arraySize = parseInt(e.target.value);
+      sortSpeed = getSortDelay(arraySize);
+      arraySizeValue.textContent = arraySize;
+      generateRandomArray(arraySize);
+    });
+
+    // Initialize
+    generateRandomArray(arraySize);
+  </script>
+</body>
+</html>
